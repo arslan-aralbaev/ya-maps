@@ -1,12 +1,12 @@
 import os
 import pygame as py
 import requests
+import io
 py.init()
 py.display.set_caption('yamaps')
 screen = py.display.set_mode((800, 600))
 x, y = screen.get_size()
 last = ''
-
 
 def update(name='map.png', ll=(37.530887, 55.703118), scale=1.0, l='map'):
     global last
