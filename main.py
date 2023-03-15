@@ -1,19 +1,41 @@
 import pygame as py
 import requests
 import io
+from pygame import MOUSEWHEEL
+
 py.init()
-py.display.set_caption('yamaps')
-screen = py.display.set_mode((800, 600))
-x, y = screen.get_size()
+py.display.set_caption('Яндекс.Карты')
+x, y = 800, 600
+screen = py.display.set_mode((x, y + 100))
 update_flag = True
-last = ''
-ll = [32.530887, 55.703118]
-scale, mapZoom = 2.0, 15
-landArray = ['map', 'sat', 'skl', 'trf']
-pmArray = list()
-lCount = 0
-past = ''
-kToMoveMap = 0.002
+ll = [37.617698, 55.755864]
+scale, mapZoom, lCount, kToMoveMap = 2.0, 10, 0, 0.002
+landArray, ptArray = ['map', 'sat', 'skl', 'trf'], list()
+app_mode = 'st'
+apikey = '40d1649f-0493-4b70-98ba-98533de7710b'
+
+
+def get_geo(place, postal_code_bullin):
+    global ll
+    geocoder_request = f'http://geocode-maps.yandex.ru/1.x/?apikey={apikey}&geocode={place}&format=json'
+    response = requests.get(geocoder_request)
+    if response:
+        try:
+            json_response = response.json()
+            toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+            toponym_address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
+            toponym_coodrinates = toponym["Point"]["pos"]
+            toponym_postalcode = toponym["metaDataProperty"]["GeocoderMetaData"]["Address"]["postal_code"]\
+                if postal_code_bullin else '000000'
+            ll = [float(toponym_coodrinates.split(' ')[0]), float(toponym_coodrinates.split(' ')[1])]
+            full_info = toponym_address, toponym_postalcode, toponym_coodrinates
+            return full_info
+        except Exception as ex:
+            print('!!error!!!', geocoder_request, ex)
+    else:
+        print("Ошибка выполнения запроса:")
+        print(geocoder_request)
+        print("Http статус:", response.status_code, "(", response.reason, ")")
 
 
 def get_image(response):
@@ -23,25 +45,22 @@ def get_image(response):
 
 
 def create_base_point(anypm, long, lat):
-    if pmArray:
-        pmArray.append('~' + str(long) + ',' + str(lat))
+    if ptArray:
+        ptArray.append('~' + str(long) + ',' + str(lat))
     else:
-        pmArray.append('&' + anypm + '=' + str(long) + ',' + str(lat))
-    print(pmArray, pmArray[-1])
+        ptArray.append('&' + anypm + '=' + str(long) + ',' + str(lat))
+    print(ptArray, ptArray[-1])
 
 
-def update(mode, name='map.png', longLat=(37.530887, 55.703118), mapScale=1.0, land='map', zoom=14):
-    global update_flag, pmArray
+def update(mode, longLat=(37.530887, 55.703118), mapScale=1.0, land='map', zoom=14):
+    global update_flag, ptArray
     if update_flag:
         screen.fill((255, 0, 255))
         if mode == 'test':
             map_request = f'https://static-maps.yandex.ru/1.x/?l=map&z={zoom}&pt2'
-        elif land == 'saat':
-            map_request = f'http://static-maps.yandex.ru/1.x/?ll={float(longLat[0])},{float(longLat[1])}' \
-                f'&z={zoom}&spn=0.002,0.002&l={land}'
         else:
             map_request = f'http://static-maps.yandex.ru/1.x/?ll={float(longLat[0])},{float(longLat[1])}' \
-                f'&z={zoom}&pn=0.002,0.002&l={land}' + ','.join(pmArray)
+                f'&z={zoom}&pn=0.002,0.002&l={land}' + ','.join(ptArray)
         print(map_request)
         response = requests.get(map_request)
         if not response:
@@ -62,35 +81,34 @@ while True:
             exit()
         if event.type == py.KEYUP:
             update_flag = True
+        if event.type == MOUSEWHEEL:
+            mapZoom += event.y if event.y == 1 and mapZoom <= 22 else 0
+            mapZoom += event.y if event.y == -1 and 2 <= mapZoom else 0
+            py.time.delay(250)
+            update_flag = True
+        if event.type == py.KEYDOWN:
             py.time.delay(250)
     keys = py.key.get_pressed()
     scale += 0.1 if keys[py.K_PAGEUP] and (scale < 3.9) else 0
     scale -= 0.1 if keys[py.K_PAGEDOWN] and (1.1 < scale) else 0
     if keys[py.K_UP] and ll[1] > 0:
         ll[1] += mapZoom * kToMoveMap
-        py.time.delay(250)
     if keys[py.K_DOWN] and ll[1] < 180:
         ll[1] -= mapZoom * kToMoveMap
-        py.time.delay(250)
     if keys[py.K_LEFT] and ll[0] > 0:
         ll[0] -= (0 + mapZoom) * kToMoveMap
-        py.time.delay(250)
     if keys[py.K_RIGHT] and ll[0] < 360:
         ll[0] += mapZoom * kToMoveMap
-        py.time.delay(250)
     if keys[py.K_w] and mapZoom < 23:
         mapZoom += 1
-        py.time.delay(250)
     if keys[py.K_s] and mapZoom > 0:
         mapZoom -= 1
-        py.time.delay(250)
     if keys[py.K_q]:
         exit()
-    if keys[py.K_p] and len(pmArray) < 99:
+    if keys[py.K_p] and len(ptArray) < 99:
         create_base_point('pt', ll[0], ll[1])
-        print('key_down')
-        py.time.delay(250)
     if keys[py.K_m]:
-        lCount = 0 if lCount == 3 else lCount+1
-        py.time.delay(250)
-    update('work', 'map.png', ll, scale, landArray[lCount], mapZoom)
+        lCount = 0 if lCount == 3 else lCount + 1
+    if keys[py.K_f]:
+        get_geo(input('~'), False)
+    update('work', ll, scale, landArray[lCount], mapZoom)
