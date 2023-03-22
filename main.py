@@ -6,13 +6,14 @@ from pygame import MOUSEWHEEL
 py.init()
 py.display.set_caption('Яндекс.Карты')
 x, y = 800, 600
-screen = py.display.set_mode((x, y + 100))
+screen = py.display.set_mode((x, y))
 update_flag = True
 ll = [37.617698, 55.755864]
 scale, mapZoom, lCount, kToMoveMap = 2.0, 10, 0, 0.002
 landArray, ptArray = ['map', 'sat', 'skl', 'trf'], list()
 app_mode = 'st'
 apikey = '40d1649f-0493-4b70-98ba-98533de7710b'
+vision_panel_count = 0
 
 
 def get_geo(place, postal_code_bullin):
@@ -75,6 +76,21 @@ def update(mode, longLat=(37.530887, 55.703118), mapScale=1.0, land='map', zoom=
         update_flag = False
 
 
+class PanelView:
+    def __init__(self):
+        self.x = x
+        self.y = y + y // 6
+        self.y_move = y
+
+    def view(self):
+        if vision_panel_count % 2 != 0 and self.y_move < self.y:
+            self.y_move += 1
+        if vision_panel_count % 2 == 0 and self.y_move > y:
+            self.y_move -= 1
+        py.display.set_mode((x, self.y_move))
+
+
+panel = PanelView()
 while True:
     for event in py.event.get():
         if event.type == py.QUIT:
@@ -111,4 +127,8 @@ while True:
         lCount = 0 if lCount == 3 else lCount + 1
     if keys[py.K_f]:
         get_geo(input('~'), False)
+    if keys[py.K_d]:
+        vision_panel_count += 1
+    print(vision_panel_count)
+    panel.view()
     update('work', ll, scale, landArray[lCount], mapZoom)
