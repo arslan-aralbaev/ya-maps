@@ -2,10 +2,10 @@ import pygame as pg
 
 
 class Button:
-    def __init__(self, screen: pg.Surface, x: int, y: int, sx: int, sy:int, color, grad=255, text="", font=20, text_color=[0, 0, 0]):
+    def __init__(self, screen: pg.Surface, x: int, y: int, sx: int, sy:int, color, grad=255, bor_grad=0.5, text="", font=20, text_color=[0, 0, 0]):
         self.plot, self.sc, self.llf, self.grad, self.an_flag = pg.Surface((sx, sy)), screen, False, grad, None
         self.x, self.y, self.sx, self.sy, self.col, self.an_plot = x, y, sx, sy, color[:], pg.Surface((sx, sy))
-        self.font, self.text, self.text_c = pg.font.SysFont(None, font), text, text_color
+        self.font, self.text, self.text_c, self.bg = pg.font.SysFont(None, font), text, text_color, bor_grad
         self.an_cord, self.an_color, self.an_grad, self.an_time = (0, 0), [0, 0, 0], 0, pg.time.get_ticks()
         self.render(color)
 
@@ -13,7 +13,7 @@ class Button:
         """updating Button surface"""
         self.plot.fill([0, 0, 0])
         self.plot.set_alpha(self.grad)
-        bor = int(min(self.sx, self.sy) * 0.2)
+        bor = int(min(self.sx, self.sy) / 2 * self.bg)
         pg.draw.rect(self.plot, color, (0, 0, self.sx, self.sy), border_radius=bor)
         pg.draw.rect(self.plot, list(map(lambda g: int(g * 0.6), color)), (0, 0, self.sx, self.sy), 2, border_radius=bor)
         text = self.font.render(self.text, True, self.text_c)

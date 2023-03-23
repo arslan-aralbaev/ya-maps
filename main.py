@@ -2,6 +2,8 @@ import os
 import pygame as py
 import requests
 import io
+from widgets import Button
+from catchers import button_catcher, COLORS
 py.init()
 py.display.set_caption('yamaps')
 screen = py.display.set_mode((800, 600))
@@ -60,11 +62,13 @@ def update(name='map.png', ll=(37.530887, 55.703118), scale=1.0, l='map'):
 
 
 ll = [37.530887, 55.703118]
+close_button = Button(screen, 10, 10, 50, 50, COLORS['red'], 200, 1, "X")
 scale = 2.0
 l = ['map', 'sat', 'skl', 'trf']
 lCount = 0
 past = ''
 while True:
+    ppx, ppy = py.mouse.get_pos()
     for event in py.event.get():
         if event.type == py.QUIT:
             exit()
@@ -77,3 +81,5 @@ while True:
         lCount = 0 if lCount == 3 else lCount+1
         py.time.delay(250)
     update2('map.png', ll, scale, l[lCount])
+    pressed = button_catcher(ppx, ppy, False, close_button)
+

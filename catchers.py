@@ -1,4 +1,4 @@
-from .widgets import Switch, Button, ProgressBar
+from widgets import Switch, Button, ProgressBar
 
 
 COLORS = {"wh": (30, 30, 30), "gr": (150, 150, 150), "fn": (90, 100, 90), "li": (255, 230, 190),
