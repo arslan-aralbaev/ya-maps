@@ -98,6 +98,10 @@ class MyWidget(QMainWindow, MainWindow):
         self.db.clicked.connect(self.binds[Qt.Key_S])
         self.mb.clicked.connect(self.binds[Qt.Key_M])
         self.pb.clicked.connect(self.binds[Qt.Key_P])
+        self.xb.clicked.connect(self.clear_re)
+        self.gb.clicked.connect(self.show_searched)
+        self.sb.clicked.connect(self.search)
+        self.sl.editingFinished.connect(self.search)
         self.initUI()
 
     def initUI(self):
@@ -150,6 +154,24 @@ class MyWidget(QMainWindow, MainWindow):
             return False
         self.create_base_point('pt', self.ll[0], self.ll[1])
         self.update_image()
+
+    def search(self):
+        text = self.sl.text()
+        #searching
+        self.vari.clear()
+        rez = ["Sterlitamak"]
+        #collecting rezults
+        self.vari.addItems(rez)
+
+    def show_searched(self):
+        text = self.vari.currentText()
+        #изменение координат в self.ll
+        self.tabWidget.setCurrentIndex(0)
+        self.update_image()
+
+    def clear_re(self):
+        self.vari.clear()
+        self.sl.clear()
 
     def update_image(self):
         land, zoom, longLat, pmArray = self.landArray[self.lCount], self.mapZoom, self.ll, self.pmArray
