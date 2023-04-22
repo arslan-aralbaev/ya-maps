@@ -193,12 +193,15 @@ class MyWidget(QMainWindow, MainWindow):
         text = self.vari.currentText()
         #изменение координат в self.ll
         self.ll = get_geo(text, False)
+        self.create_base_point('pt', self.ll[0], self.ll[1])
         self.tabWidget.setCurrentIndex(0)
         self.update_image()
 
     def clear_re(self):
         self.vari.clear()
         self.sl.clear()
+        self.pmArray.pop(-1) if self.pmArray else print('point list is empty')
+        self.update_image()
 
     def update_image(self):
         land, zoom, longLat, pmArray = self.landArray[self.lCount], self.mapZoom, self.ll, self.pmArray
